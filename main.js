@@ -7,16 +7,30 @@ class Block{
         this.data = data;
         this.previousHash = previousHash;
         this.hash = this.calculateHash();
+        this.nonce = 0;
     }
     calculateHash(){
-        return SHA256(this.index + this.previousHash + this.timestamp + JSON.stringify(this.data)).toString();
+        return SHA256(this.index + this.previousHash + this.timestamp + JSON.stringify(this.data) + this.nonce).toString();
     }
+    /*
+    It is possible to add many blocks as any user wants and our chain gets heavy and accepting all the data 
+    so we implement proof of work(concensis protocol) so every block is minned after some required calculation
+    */
+   //Proof of work
+    mineBlock(difficulty){
+        while(this.hash.substring(0,difficulty) !== Array(difficulty+1).join("0")){
+            this.nonce++;
+            this.hash = this.calculateHash()
+        }
+        console.log("Block mined:"+this.hash);
+       }
 
 }
 
 class Blockchain{
     constructor(){
         this.chain = [this.createGenesisBlock()];
+        this.difficulty = 4;
     }
     //Create genesis manually
     createGenesisBlock(){
@@ -28,8 +42,10 @@ class Blockchain{
     }
     //add block to the chain
     addBlock(newBlock){
+
         newBlock.previousHash = this.getLatestBlock().hash;
-        newBlock.hash = newBlock.calculateHash();
+        newBlock.mineBlock(this.difficulty);
+        //newBlock.hash = newBlock.calculateHash();
         this.chain.push(newBlock);
     }
     // verification of Blockchain by using previous hash method
@@ -47,10 +63,15 @@ class Blockchain{
         }
         return true;
     }
+    
+
+
 }
 //test coin
 let myCoin = new Blockchain();
+console.log('Mining block 1........');
 myCoin.addBlock(new Block(1,"11/12/2021",{amount:4}));
+console.log('Mining block 2........');
 myCoin.addBlock(new Block(2,"13/12/2021",{amount:10}));
 
 //console.log(JSON.stringify(myCoin, null , 4)); // simple printing of chain
@@ -60,8 +81,8 @@ myCoin.addBlock(new Block(2,"13/12/2021",{amount:10}));
 
 // recalculate hash method
 
-console.log("Is chain Valid? "+ myCoin.isChainValid()); //rturns True
-myCoin.chain[1].data = {amount : 1000}; // tempering
-myCoin.chain[1].hash = myCoin.chain[1].calculateHash()
-console.log(JSON.stringify(myCoin, null , 4));
-console.log("Is chain Valid? "+ myCoin.isChainValid()); //return False
+// console.log("Is chain Valid? "+ myCoin.isChainValid()); //rturns True
+// myCoin.chain[1].data = {amount : 1000}; // tempering
+// myCoin.chain[1].hash = myCoin.chain[1].calculateHash()
+// console.log(JSON.stringify(myCoin, null , 4));
+// console.log("Is chain Valid? "+ myCoin.isChainValid()); //return False
